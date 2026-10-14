@@ -1,0 +1,35 @@
+,detected,false_alarms_per_week,lead_h_4,family,seeds
+"Rolling-baseline z, oil 2 h",4.0,0.2754474655007514,0.3,statistical,1
+"LOF, raw features",4.0,0.5524839167163381,12.6,classical ML,5
+"Isolation Forest, drift-adjusted features",4.0,0.6215444063058804,-0.3833333333333333,classical ML,5
+"CUSUM, motor current",4.0,0.641013411679417,12.883333333333333,statistical,1
+"LOF, drift-adjusted features",4.0,0.6906048958954226,12.8,classical ML,5
+"Matrix Profile, load state, raw, cleaned ref.",4.0,0.7052107236805283,2.583333333333333,time series,1
+"Matrix Profile, load state, z-norm, cleaned ref.",4.0,0.7052107236805283,11.083333333333334,time series,1
+"LSTM AE, cleaned training data",4.0,0.7052107236805283,0.0833333333333333,deep learning,3
+"Dense AE, cleaned training data",4.0,0.8287258750745072,-0.5,deep learning,3
+"CUSUM, load share",4.0,1.0897227998550088,11.283333333333331,statistical,1
+Sustained-load rule (calibrated),4.0,1.1148919005081293,-0.4166666666666667,expert rule,1
+"Rolling-baseline z, load share 2 h",4.0,1.2395135947533815,0.15,statistical,1
+"Sustained-load rule (expert, 0.9)",4.0,1.2460556535090856,-0.25,expert rule,1
+"EWMA, load share",4.0,1.4102295056947174,-0.15,statistical,1
+"Forecast residual, load share",4.0,2.237081370541659,12.266666666666667,time series,1
+"Matrix Profile, motor current, z-norm, cleaned ref.",4.0,3.455532546034589,15.0,time series,1
+"Forecast residual, mean current",4.0,4.401998825904554,12.266666666666667,time series,1
+"Forecast residual, mean oil",4.0,6.422588450909924,12.533333333333331,time series,1
+"Isolation Forest, raw features",3.0,0.6215444063058804,0.8333333333333334,classical ML,5
+"PCA reconstruction, drift-adjusted features",3.0,0.7596653854849649,-1.9,classical ML,1
+"PCA reconstruction, raw features",3.0,1.3812097917908452,-0.5,classical ML,1
+"Rolling-baseline z, current 2 h",3.0,1.996994124880448,,statistical,1
+"Matrix Profile, motor current, z-norm, full ref.",3.0,2.820842894722113,12.666666666666666,time series,1
+"EWMA, motor current",2.0,0.0641013411679417,-0.3166666666666666,statistical,1
+"Matrix Profile, motor current, raw, cleaned ref.",2.0,0.5641685789444226,,time series,1
+Hotelling T² (18 features),2.0,0.9668468542535916,-0.4,statistical,1
+"Dense AE, full training data",2.0,0.9668468542535916,6.166666666666666,deep learning,3
+"One-Class SVM, drift-adjusted features",2.0,1.5193307709699295,-0.4333333333333333,classical ML,5
+"One-Class SVM, raw features",2.0,1.5193307709699295,-2.45,classical ML,5
+"Matrix Profile, load state, z-norm, full ref.",1.0,0.423126434208317,11.083333333333334,time series,1
+"Matrix Profile, load state, raw, full ref.",1.0,0.4936475065763698,2.583333333333333,time series,1
+Max robust |z| (18 features),1.0,1.035907343843134,,statistical,1
+"LSTM AE, full training data",1.0,1.4809425197291095,1.6666666666666667,deep learning,3
+"Matrix Profile, motor current, raw, full ref.",0.0,0.3526053618402641,,time series,1

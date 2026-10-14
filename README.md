@@ -6,41 +6,61 @@
 
 **English** · [Français](README.fr.md)
 
-Comparison of anomaly detection methods on **real industrial sensor data**: 7 months of readings from the air production unit of a Porto metro train, with four documented air-leak failures. The methods range from statistical control rules to classical machine learning and deep learning. All of them run on the same data with the same evaluation protocol.
+Benchmark of **34 anomaly detection configurations** from five families (expert rule, statistical process control, classical machine learning, time series methods, deep learning) on **real industrial sensor data**: 7 months of readings from the air production unit of a Porto metro train, with four reported air leaks. Every method runs under the same protocol: chronological split, threshold calibrated on training data only, event-based scoring.
 
-**Question**: which method detects the air leaks earliest, with the fewest false alarms, and is the added complexity worth it?
+**Question**: which method detects the leaks earliest, with the fewest false alarms, and is the added complexity of machine learning worth it?
 
-> **Status**: in progress. Notebooks 01–06 done (data, protocol, statistical baselines, classical ML, time series methods, deep learning); the final comparison is next.
-
-## Findings so far
+## Key results
 
 | | |
 |---|---|
-| **Failure signature** | During a leak the compressor stops cycling and stays **under load 99.5% of the time** (vs. 15% normally), with oil **~13 °C hotter**. It is a *collective* anomaly: each reading is within the normal range, so detection needs time windows, not single readings |
-| **Existing alarm** | The on-board low-pressure signal fires on only 2.4% of failure readings |
-| **Data quality** | Readings every ~10 s (not 1 Hz as documented); 18% of the period missing; 7 days of frozen sensor values that must be excluded |
-| **Ground truth** | 8 sustained-load episodes ≥ 1 h are **not** in the failure reports, so labels are incomplete. Evaluation is therefore event-based, with unreported episodes reported separately |
-| **Early warning** | Before failure 4 the compressor was already overloaded for 14 hours, so detection ahead of the reported start is plausible |
-| **Windows, not readings** | Under the evaluation protocol, the raw motor current detects 0/4 failures; its 2-hour mean detects 4/4 with 0.9 false alarms per week, failure 4 flagged 13.7 h early |
-| **Drift** | A winter-calibrated threshold on oil temperature gives 1.4 false alarms per week in summer, where a well-placed one would give none |
-| **Best statistical baselines** | Oil temperature z-score against a 7-day rolling reference: 4/4 failures, 0.28 false alarms per week. CUSUM on motor current: 4/4, 0.64 per week, failure 4 flagged 12.9 h early. Multivariate distances (max \|z\|, Hotelling T²) fail, swamped by one heavy-tailed feature |
-| **Classical ML** | LOF on the window features matches the best charts (4/4 on all seeds, 0.55 false alarms per week, 12.6 h early on failure 4) without beating them; One-Class SVM detects 2/4. Results vary up to threefold across random seeds, so every stochastic result is a median over five. PCA adds what scores lack: which signals explain each alarm |
-| **Contaminated reference** | The Matrix Profile finds the nearest training neighbour of every failure inside an unreported leak-like episode of March 29, and detects 0/4. Removing the episodes the expert rule finds in training data takes it to 4/4 with 0.71 false alarms per week. The same cleaning drops LOF from 4/4 to 2/4: its earlier success partly relied on that unreported leak. Forecast residuals detect the onset of leaks, not the leaks, with 2–6 false alarms per week |
-| **Deep learning** | Trained on the full training period, dense and LSTM autoencoders detect 1–2/4: they learned to reconstruct the unreported leaks. Trained on the cleaned period they reach 4/4 with 0.7–0.8 false alarms per week, with no early warning and up to a minute of CPU training per model |
+| **Recommendation** | CUSUM chart on motor current for early warning, confirmed by an oil-temperature z-score against the previous 7 days: **4/4 failures, 0.71 false alarms per week, failure 4 flagged 12.9 h before its reported start** |
+| **Best detectors** | 18 of 34 configurations detect all four failures. The best of each family reach 0.3–0.8 false alarms per week; the two statistical detectors run in under half a second on one signal each |
+| **Complexity** | Machine learning and deep learning match the statistical detectors without beating them, and cost seeds, training time and a curated training set |
+| **Main lesson** | Unreported leaks in the training data matter more than the algorithm: they blind the Matrix Profile (0/4) and the autoencoders (1–2/4) until removed, and gave LOF a success it loses once removed |
+| **Uncertainty** | With four failures, 4/4 is compatible with a true detection rate as low as 40%, and the false-alarm intervals of the five best detectors overlap: only coarse rankings are established |
 
-![Failure signature](docs/figures/01_failures.png)
+![Detectors that find all four failures](docs/figures/07_summary.png)
+
+➡️ **[Executive report](docs/report.md)** (question, protocol, results, recommendation, limitations)
+
+## Technical highlights
+
+- **Data understanding before modelling**
+  - sampling every ~10 s, not 1 Hz as documented;
+  - 18% of the period missing, 7 days of frozen sensor values;
+  - the failure signature (the compressor stops cycling and stays loaded) and its physics;
+  - 8 leak-like episodes missing from the failure reports.
+- **A protocol that resists leakage and luck**
+  - backward-looking window features, with a unit test that changes future data;
+  - chronological split, thresholds calibrated on training data under an alarm budget;
+  - event-based metrics with lead times, and a chance level computed for random alarms.
+- **Statistical process control**: robust z-scores, Hotelling T², EWMA and CUSUM charts, a drift-adjusted reference that cuts false alarms fivefold.
+- **Classical ML**
+  - Isolation Forest, One-Class SVM, LOF, PCA, each run with five seeds;
+  - alarms explained by a per-feature breakdown of the PCA reconstruction error.
+- **Time series and deep learning**
+  - forecast residuals (gradient boosting) and Matrix Profile (stumpy, with reference cleaning);
+  - dense and LSTM autoencoders (PyTorch, early stopping).
+- **Diagnosis, not just scores**
+  - why multivariate distances fail (one heavy-tailed feature);
+  - why the nearest neighbour of a leak is a leak;
+  - why an autoencoder reconstructs the faults it has seen;
+  - why LOF succeeded for the wrong reason.
+- **Honest conclusions**: Clopper-Pearson and Poisson intervals, a selection-effect simulation for 34 configurations, sensitivity analyses kept separate from model selection.
+- **Engineering**: Python package, 32 unit tests, GitHub Actions CI, result tables saved per notebook.
 
 ## Approach
 
-| Notebook | Content | Status |
+| Notebook | Content | Main result |
 |---|---|---|
-| [01 — Data](notebooks/01_data_exploration.ipynb) | Sensors, sampling, gaps, frozen readings, operating cycle, failure signature, label completeness | ✅ |
-| [02 — Evaluation protocol](notebooks/02_evaluation_protocol.ipynb) | One-minute grid, 18 window features, chronological split, event-based scoring, threshold calibration, chance level | ✅ |
-| [03 — Statistical baselines](notebooks/03_statistical_baselines.ipynb) | Expert rule, robust z-score, Hotelling T², EWMA and CUSUM charts, rolling-baseline z-score | ✅ |
-| [04 — Classical ML](notebooks/04_classical_ml.ipynb) | Isolation Forest, One-Class SVM, Local Outlier Factor, PCA reconstruction; raw vs. drift-adjusted inputs; seed variability; alarm explanation | ✅ |
-| [05 — Time series methods](notebooks/05_time_series_methods.ipynb) | Forecast residuals (gradient boosting), Matrix Profile (raw and z-normalised, full and cleaned reference), cleaning cross-check on LOF | ✅ |
-| [06 — Deep learning](notebooks/06_deep_learning.ipynb) | Dense and LSTM autoencoders (PyTorch), full vs. cleaned training data, three seeds, reconstruction analysis | ✅ |
-| 07 — Results | Comparison table, cost of complexity, recommendation | planned |
+| [01 — Data](notebooks/01_data_exploration.ipynb) | Sensors, sampling, gaps, frozen readings, operating cycle, failure signature, label completeness | A leak is a collective anomaly; the failure reports miss 8 similar episodes |
+| [02 — Evaluation protocol](notebooks/02_evaluation_protocol.ipynb) | One-minute grid, 18 window features, chronological split, event-based scoring, threshold calibration, chance level | Raw readings detect 0/4, 2-hour windows 4/4 |
+| [03 — Statistical baselines](notebooks/03_statistical_baselines.ipynb) | Expert rule, robust z-score, Hotelling T², EWMA, CUSUM, rolling-baseline z-score | Oil z-score vs. last 7 days: 4/4, 0.28 false alarms/week; CUSUM: 12.9 h early warning |
+| [04 — Classical ML](notebooks/04_classical_ml.ipynb) | Isolation Forest, One-Class SVM, LOF, PCA; raw vs. drift-adjusted inputs; seed variability; alarm explanation | LOF matches the best charts without beating them |
+| [05 — Time series methods](notebooks/05_time_series_methods.ipynb) | Forecast residuals, Matrix Profile (raw/z-normalised, full/cleaned reference), cleaning cross-check on LOF | A contaminated reference blinds the Matrix Profile; cleaning fixes it but hurts LOF |
+| [06 — Deep learning](notebooks/06_deep_learning.ipynb) | Dense and LSTM autoencoders, full vs. cleaned training data, reconstruction analysis | 1–2/4 on full data, 4/4 once cleaned, no early warning |
+| [07 — Results](notebooks/07_results.ipynb) | All 34 configurations, confidence intervals, selection effect, alarm-budget robustness, cost of complexity, recommendation | CUSUM + drift-adjusted oil score |
 
 ## Data
 
@@ -61,13 +81,14 @@ Labels: four air-leak windows from the operator's failure reports.
 git clone https://github.com/mimouniahmed/metro-anomaly-benchmark.git
 cd metro-anomaly-benchmark
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu   # CPU build is enough
 pip install -r requirements.txt
 pip install -e .
 
-pytest
+pytest   # 32 tests
 ```
 
-The dataset (218 MB) is downloaded automatically on first use by `metrobench.data.load()` and cached as Parquet (22 MB) in `data/`.
+The dataset (218 MB) is downloaded automatically on first use by `metrobench.data.load()` and cached as Parquet (22 MB) in `data/`. Run the notebooks in order, 01 → 07; each saves its results table in `results/`, which notebook 07 combines.
 
 ## Structure
 
@@ -85,13 +106,15 @@ metro-anomaly-benchmark/
 ├── notebooks/          # analysis, 01 → 07
 ├── results/            # result tables per notebook (CSV)
 ├── tests/              # unit tests
-├── docs/figures/
+├── docs/
+│   ├── report.md       # executive report
+│   └── figures/
 └── .github/workflows/  # CI
 ```
 
 ## Stack
 
-Python 3.12 · pandas · NumPy · PyArrow · scikit-learn · stumpy · PyTorch · Matplotlib · pytest · GitHub Actions
+Python 3.12 · pandas · NumPy · PyArrow · SciPy · scikit-learn · stumpy · PyTorch · Matplotlib · pytest · GitHub Actions
 
 ## Author
 
