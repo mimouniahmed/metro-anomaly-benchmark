@@ -10,7 +10,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 
 **Question**: which method detects the air leaks earliest, with the fewest false alarms, and is the added complexity worth it?
 
-> **Status**: in progress. Notebooks 01–05 done (data, protocol, statistical baselines, classical ML, time series methods); deep learning and the final comparison are next.
+> **Status**: in progress. Notebooks 01–06 done (data, protocol, statistical baselines, classical ML, time series methods, deep learning); the final comparison is next.
 
 ## Findings so far
 
@@ -26,6 +26,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | **Best statistical baselines** | Oil temperature z-score against a 7-day rolling reference: 4/4 failures, 0.28 false alarms per week. CUSUM on motor current: 4/4, 0.64 per week, failure 4 flagged 12.9 h early. Multivariate distances (max \|z\|, Hotelling T²) fail, swamped by one heavy-tailed feature |
 | **Classical ML** | LOF on the window features matches the best charts (4/4 on all seeds, 0.55 false alarms per week, 12.6 h early on failure 4) without beating them; One-Class SVM detects 2/4. Results vary up to threefold across random seeds, so every stochastic result is a median over five. PCA adds what scores lack: which signals explain each alarm |
 | **Contaminated reference** | The Matrix Profile finds the nearest training neighbour of every failure inside an unreported leak-like episode of March 29, and detects 0/4. Removing the episodes the expert rule finds in training data takes it to 4/4 with 0.71 false alarms per week. The same cleaning drops LOF from 4/4 to 2/4: its earlier success partly relied on that unreported leak. Forecast residuals detect the onset of leaks, not the leaks, with 2–6 false alarms per week |
+| **Deep learning** | Trained on the full training period, dense and LSTM autoencoders detect 1–2/4: they learned to reconstruct the unreported leaks. Trained on the cleaned period they reach 4/4 with 0.7–0.8 false alarms per week, with no early warning and up to a minute of CPU training per model |
 
 ![Failure signature](docs/figures/01_failures.png)
 
@@ -38,7 +39,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | [03 — Statistical baselines](notebooks/03_statistical_baselines.ipynb) | Expert rule, robust z-score, Hotelling T², EWMA and CUSUM charts, rolling-baseline z-score | ✅ |
 | [04 — Classical ML](notebooks/04_classical_ml.ipynb) | Isolation Forest, One-Class SVM, Local Outlier Factor, PCA reconstruction; raw vs. drift-adjusted inputs; seed variability; alarm explanation | ✅ |
 | [05 — Time series methods](notebooks/05_time_series_methods.ipynb) | Forecast residuals (gradient boosting), Matrix Profile (raw and z-normalised, full and cleaned reference), cleaning cross-check on LOF | ✅ |
-| 06 — Deep learning | Dense and LSTM autoencoders | planned |
+| [06 — Deep learning](notebooks/06_deep_learning.ipynb) | Dense and LSTM autoencoders (PyTorch), full vs. cleaned training data, three seeds, reconstruction analysis | ✅ |
 | 07 — Results | Comparison table, cost of complexity, recommendation | planned |
 
 ## Data

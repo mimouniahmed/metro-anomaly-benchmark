@@ -10,7 +10,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 
 **Question** : quelle méthode détecte les fuites le plus tôt, avec le moins de fausses alarmes, et la complexité supplémentaire en vaut-elle la peine ?
 
-> **État** : en cours. Notebooks 01–05 terminés (données, protocole, références statistiques, ML classique, méthodes temporelles) ; deep learning et comparaison finale à venir.
+> **État** : en cours. Notebooks 01–06 terminés (données, protocole, références statistiques, ML classique, méthodes temporelles, deep learning) ; comparaison finale à venir.
 
 ## Premiers résultats
 
@@ -26,6 +26,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 | **Meilleures références statistiques** | z-score de la température d'huile par rapport aux 7 jours précédents : 4/4 pannes, 0,28 fausse alarme par semaine. CUSUM sur le courant moteur : 4/4, 0,64 par semaine, panne 4 signalée 12,9 h en avance. Les distances multivariées (max \|z\|, T² de Hotelling) échouent, noyées par une variable à queue lourde |
 | **ML classique** | LOF sur les variables de fenêtre égale les meilleures cartes de contrôle (4/4 avec toutes les graines, 0,55 fausse alarme par semaine, panne 4 signalée 12,6 h en avance) sans les battre ; le One-Class SVM détecte 2/4. Les résultats varient jusqu'au triple selon la graine aléatoire : chaque résultat aléatoire est une médiane sur cinq. L'ACP apporte ce que les scores n'ont pas : les signaux qui expliquent chaque alarme |
 | **Référence contaminée** | Le Matrix Profile trouve le plus proche voisin de chaque panne dans un épisode de fuite non déclaré du 29 mars, et détecte 0/4. Retirer les épisodes que la règle d'expert repère dans l'apprentissage le fait passer à 4/4 avec 0,71 fausse alarme par semaine. Le même nettoyage fait chuter LOF de 4/4 à 2/4 : son succès reposait en partie sur cette fuite non déclarée. Les résidus de prévision détectent le début des fuites, pas les fuites, avec 2 à 6 fausses alarmes par semaine |
+| **Deep learning** | Entraînés sur toute la période d'apprentissage, les autoencodeurs dense et LSTM détectent 1 à 2 pannes sur 4 : ils ont appris à reconstruire les fuites non déclarées. Entraînés sur la période nettoyée, ils atteignent 4/4 avec 0,7 à 0,8 fausse alarme par semaine, sans alerte précoce et avec jusqu'à une minute d'entraînement CPU par modèle |
 
 ![Signature des pannes](docs/figures/01_failures.png)
 
@@ -38,7 +39,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 | [03 — Références statistiques](notebooks/03_statistical_baselines.ipynb) | Règle d'expert, z-score robuste, T² de Hotelling, cartes EWMA et CUSUM, z-score à référence glissante | ✅ |
 | [04 — ML classique](notebooks/04_classical_ml.ipynb) | Isolation Forest, One-Class SVM, Local Outlier Factor, reconstruction par ACP ; variables brutes ou corrigées de la dérive ; variabilité selon la graine ; explication des alarmes | ✅ |
 | [05 — Méthodes temporelles](notebooks/05_time_series_methods.ipynb) | Résidus de prévision (gradient boosting), Matrix Profile (brut et z-normalisé, référence complète ou nettoyée), contrôle croisé du nettoyage sur LOF | ✅ |
-| 06 — Deep learning | Autoencodeurs denses et LSTM | prévu |
+| [06 — Deep learning](notebooks/06_deep_learning.ipynb) | Autoencodeurs dense et LSTM (PyTorch), apprentissage complet ou nettoyé, trois graines, analyse des reconstructions | ✅ |
 | 07 — Résultats | Tableau comparatif, coût de la complexité, recommandation | prévu |
 
 Les notebooks et figures sont rédigés en anglais.
