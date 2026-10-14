@@ -10,7 +10,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 
 **Question**: which method detects the air leaks earliest, with the fewest false alarms, and is the added complexity worth it?
 
-> **Status**: in progress. Notebooks 01–04 done (data, protocol, statistical baselines, classical ML); time series methods and deep learning are next.
+> **Status**: in progress. Notebooks 01–05 done (data, protocol, statistical baselines, classical ML, time series methods); deep learning and the final comparison are next.
 
 ## Findings so far
 
@@ -25,6 +25,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | **Drift** | A winter-calibrated threshold on oil temperature gives 1.4 false alarms per week in summer, where a well-placed one would give none |
 | **Best statistical baselines** | Oil temperature z-score against a 7-day rolling reference: 4/4 failures, 0.28 false alarms per week. CUSUM on motor current: 4/4, 0.64 per week, failure 4 flagged 12.9 h early. Multivariate distances (max \|z\|, Hotelling T²) fail, swamped by one heavy-tailed feature |
 | **Classical ML** | LOF on the window features matches the best charts (4/4 on all seeds, 0.55 false alarms per week, 12.6 h early on failure 4) without beating them; One-Class SVM detects 2/4. Results vary up to threefold across random seeds, so every stochastic result is a median over five. PCA adds what scores lack: which signals explain each alarm |
+| **Contaminated reference** | The Matrix Profile finds the nearest training neighbour of every failure inside an unreported leak-like episode of March 29, and detects 0/4. Removing the episodes the expert rule finds in training data takes it to 4/4 with 0.71 false alarms per week. The same cleaning drops LOF from 4/4 to 2/4: its earlier success partly relied on that unreported leak. Forecast residuals detect the onset of leaks, not the leaks, with 2–6 false alarms per week |
 
 ![Failure signature](docs/figures/01_failures.png)
 
@@ -36,7 +37,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | [02 — Evaluation protocol](notebooks/02_evaluation_protocol.ipynb) | One-minute grid, 18 window features, chronological split, event-based scoring, threshold calibration, chance level | ✅ |
 | [03 — Statistical baselines](notebooks/03_statistical_baselines.ipynb) | Expert rule, robust z-score, Hotelling T², EWMA and CUSUM charts, rolling-baseline z-score | ✅ |
 | [04 — Classical ML](notebooks/04_classical_ml.ipynb) | Isolation Forest, One-Class SVM, Local Outlier Factor, PCA reconstruction; raw vs. drift-adjusted inputs; seed variability; alarm explanation | ✅ |
-| 05 — Time series methods | Forecast residuals, Matrix Profile | planned |
+| [05 — Time series methods](notebooks/05_time_series_methods.ipynb) | Forecast residuals (gradient boosting), Matrix Profile (raw and z-normalised, full and cleaned reference), cleaning cross-check on LOF | ✅ |
 | 06 — Deep learning | Dense and LSTM autoencoders | planned |
 | 07 — Results | Comparison table, cost of complexity, recommendation | planned |
 
@@ -77,6 +78,8 @@ metro-anomaly-benchmark/
 │   ├── evaluation.py   # time split, alarm events, event-based metrics, threshold calibration
 │   ├── baselines.py    # robust z-score, Hotelling T², EWMA, CUSUM, rolling-baseline z-score
 │   ├── ml.py           # Isolation Forest, One-Class SVM, LOF, PCA reconstruction, drift-adjusted inputs
+│   ├── timeseries.py   # forecast residuals, Matrix Profile with optional reference cleaning
+│   ├── deep.py         # dense and LSTM autoencoders (PyTorch)
 │   └── plotstyle.py    # shared figure style
 ├── notebooks/          # analysis, 01 → 07
 ├── results/            # result tables per notebook (CSV)
@@ -87,7 +90,7 @@ metro-anomaly-benchmark/
 
 ## Stack
 
-Python 3.12 · pandas · NumPy · PyArrow · scikit-learn · Matplotlib · pytest · GitHub Actions
+Python 3.12 · pandas · NumPy · PyArrow · scikit-learn · stumpy · PyTorch · Matplotlib · pytest · GitHub Actions
 
 ## Author
 

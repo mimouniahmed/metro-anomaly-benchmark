@@ -10,7 +10,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 
 **Question** : quelle méthode détecte les fuites le plus tôt, avec le moins de fausses alarmes, et la complexité supplémentaire en vaut-elle la peine ?
 
-> **État** : en cours. Notebooks 01–04 terminés (données, protocole, références statistiques, ML classique) ; méthodes temporelles et deep learning à venir.
+> **État** : en cours. Notebooks 01–05 terminés (données, protocole, références statistiques, ML classique, méthodes temporelles) ; deep learning et comparaison finale à venir.
 
 ## Premiers résultats
 
@@ -25,6 +25,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 | **Dérive** | Un seuil de température d'huile calibré en hiver donne 1,4 fausse alarme par semaine en été, là où un seuil bien placé n'en donnerait aucune |
 | **Meilleures références statistiques** | z-score de la température d'huile par rapport aux 7 jours précédents : 4/4 pannes, 0,28 fausse alarme par semaine. CUSUM sur le courant moteur : 4/4, 0,64 par semaine, panne 4 signalée 12,9 h en avance. Les distances multivariées (max \|z\|, T² de Hotelling) échouent, noyées par une variable à queue lourde |
 | **ML classique** | LOF sur les variables de fenêtre égale les meilleures cartes de contrôle (4/4 avec toutes les graines, 0,55 fausse alarme par semaine, panne 4 signalée 12,6 h en avance) sans les battre ; le One-Class SVM détecte 2/4. Les résultats varient jusqu'au triple selon la graine aléatoire : chaque résultat aléatoire est une médiane sur cinq. L'ACP apporte ce que les scores n'ont pas : les signaux qui expliquent chaque alarme |
+| **Référence contaminée** | Le Matrix Profile trouve le plus proche voisin de chaque panne dans un épisode de fuite non déclaré du 29 mars, et détecte 0/4. Retirer les épisodes que la règle d'expert repère dans l'apprentissage le fait passer à 4/4 avec 0,71 fausse alarme par semaine. Le même nettoyage fait chuter LOF de 4/4 à 2/4 : son succès reposait en partie sur cette fuite non déclarée. Les résidus de prévision détectent le début des fuites, pas les fuites, avec 2 à 6 fausses alarmes par semaine |
 
 ![Signature des pannes](docs/figures/01_failures.png)
 
@@ -36,7 +37,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 | [02 — Protocole d'évaluation](notebooks/02_evaluation_protocol.ipynb) | Grille à la minute, 18 variables sur fenêtres glissantes, découpage chronologique, évaluation par événement, calibration du seuil, niveau de chance | ✅ |
 | [03 — Références statistiques](notebooks/03_statistical_baselines.ipynb) | Règle d'expert, z-score robuste, T² de Hotelling, cartes EWMA et CUSUM, z-score à référence glissante | ✅ |
 | [04 — ML classique](notebooks/04_classical_ml.ipynb) | Isolation Forest, One-Class SVM, Local Outlier Factor, reconstruction par ACP ; variables brutes ou corrigées de la dérive ; variabilité selon la graine ; explication des alarmes | ✅ |
-| 05 — Méthodes temporelles | Résidus de prévision, Matrix Profile | prévu |
+| [05 — Méthodes temporelles](notebooks/05_time_series_methods.ipynb) | Résidus de prévision (gradient boosting), Matrix Profile (brut et z-normalisé, référence complète ou nettoyée), contrôle croisé du nettoyage sur LOF | ✅ |
 | 06 — Deep learning | Autoencodeurs denses et LSTM | prévu |
 | 07 — Résultats | Tableau comparatif, coût de la complexité, recommandation | prévu |
 
@@ -79,6 +80,8 @@ metro-anomaly-benchmark/
 │   ├── evaluation.py   # découpage temporel, événements d'alarme, métriques, calibration du seuil
 │   ├── baselines.py    # z-score robuste, T² de Hotelling, EWMA, CUSUM, z-score à référence glissante
 │   ├── ml.py           # Isolation Forest, One-Class SVM, LOF, ACP, variables corrigées de la dérive
+│   ├── timeseries.py   # résidus de prévision, Matrix Profile avec nettoyage optionnel de la référence
+│   ├── deep.py         # autoencodeurs dense et LSTM (PyTorch)
 │   └── plotstyle.py    # style commun des figures
 ├── notebooks/          # analyse, 01 → 07
 ├── results/            # tableaux de résultats par notebook (CSV)
@@ -89,7 +92,7 @@ metro-anomaly-benchmark/
 
 ## Outils
 
-Python 3.12 · pandas · NumPy · PyArrow · scikit-learn · Matplotlib · pytest · GitHub Actions
+Python 3.12 · pandas · NumPy · PyArrow · scikit-learn · stumpy · PyTorch · Matplotlib · pytest · GitHub Actions
 
 ## Auteur
 
