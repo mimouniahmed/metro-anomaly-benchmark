@@ -88,6 +88,8 @@ def calibrate(train_scores: pd.Series, max_alarms_per_week: float = 1.0, max_ala
     score quantiles, scanned from the highest down until the budget is exceeded.
     """
     valid = train_scores.dropna()
+    if valid.empty:
+        raise ValueError("the score has no value on the training period")
     weeks = len(valid) / (7 * 24 * 60)
     candidates = np.unique(valid.quantile(np.concatenate([np.linspace(0.9, 0.999, 100), np.linspace(0.999, 1, 101)])))
     best = float(np.nextafter(valid.max(), np.inf))  # no training alarm at all
@@ -136,3 +138,37 @@ def best_at_budget(curve: pd.DataFrame, max_alarms_per_week: float = 1.0) -> pd.
     if ok.empty:
         return pd.Series(dtype=float)
     return ok.sort_values(["detected", "median_lead_h"], ascending=False).iloc[0]
+
+
+def summarize(scores: dict, fixed_thresholds: dict | None = None, unreported: pd.DataFrame | None = None,
+              failures: pd.DataFrame = FAILURES, budget: float = 1.0) -> pd.DataFrame:
+    """One row per detector: calibrated results on the test period and best result within a false-alarm budget.
+
+    ``scores`` maps a detector name to its minute scores over the whole period. The
+    threshold is calibrated on the training part unless ``fixed_thresholds`` gives one
+    (an expert rule). ``unreported`` intervals, if given, count the false alarms that
+    overlap them (leak-like episodes missing from the failure reports).
+    """
+    fixed_thresholds = fixed_thresholds or {}
+    rows = []
+    for name, score in scores.items():
+        score_train, score_test = split(score)
+        threshold = fixed_thresholds.get(name)
+        if threshold is None:
+            threshold = calibrate(score_train, max_alarms_per_week=budget)
+        r = evaluate(score_test, threshold, failures)
+        best = best_at_budget(operating_curve(score_test, failures), budget)
+        row = {"detector": name, "threshold": threshold, "detected": r["detected"]}
+        row |= {f"lead_h_{i}": r["lead_hours"].get(i, np.nan) for i in failures.index}
+        row |= {
+            "false_alarms_per_week": r["false_alarms_per_week"],
+            "time_in_alarm_%": r["alarm_share_%"],
+            "best_detected": best.get("detected", 0),
+            "best_false_alarms_per_week": best.get("false_alarms_per_week", np.nan),
+        }
+        if unreported is not None:
+            events = r["events"]
+            fa = events[events["label"] == "false alarm"]
+            row["false_alarms_in_unreported"] = int(overlaps(fa, unreported).sum()) if len(fa) else 0
+        rows.append(row)
+    return pd.DataFrame(rows).set_index("detector")

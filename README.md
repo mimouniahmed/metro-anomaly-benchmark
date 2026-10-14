@@ -10,7 +10,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 
 **Question**: which method detects the air leaks earliest, with the fewest false alarms, and is the added complexity worth it?
 
-> **Status**: in progress. Data analysis and evaluation protocol done (notebooks 01–02); detection methods are next.
+> **Status**: in progress. Data analysis, evaluation protocol and statistical baselines done (notebooks 01–03); machine learning methods are next.
 
 ## Findings so far
 
@@ -23,6 +23,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | **Early warning** | Before failure 4 the compressor was already overloaded for 14 hours, so detection ahead of the reported start is plausible |
 | **Windows, not readings** | Under the evaluation protocol, the raw motor current detects 0/4 failures; its 2-hour mean detects 4/4 with 0.9 false alarms per week, failure 4 flagged 13.7 h early |
 | **Drift** | A winter-calibrated threshold on oil temperature gives 1.4 false alarms per week in summer, where a well-placed one would give none |
+| **Best statistical baselines** | Oil temperature z-score against a 7-day rolling reference: 4/4 failures, 0.28 false alarms per week. CUSUM on motor current: 4/4, 0.64 per week, failure 4 flagged 12.9 h early. Multivariate distances (max \|z\|, Hotelling T²) fail, swamped by one heavy-tailed feature |
 
 ![Failure signature](docs/figures/01_failures.png)
 
@@ -32,7 +33,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 |---|---|---|
 | [01 — Data](notebooks/01_data_exploration.ipynb) | Sensors, sampling, gaps, frozen readings, operating cycle, failure signature, label completeness | ✅ |
 | [02 — Evaluation protocol](notebooks/02_evaluation_protocol.ipynb) | One-minute grid, 18 window features, chronological split, event-based scoring, threshold calibration, chance level | ✅ |
-| 03 — Statistical baselines | Sustained-load rule, z-score, control charts (EWMA, CUSUM) | planned |
+| [03 — Statistical baselines](notebooks/03_statistical_baselines.ipynb) | Expert rule, robust z-score, Hotelling T², EWMA and CUSUM charts, rolling-baseline z-score | ✅ |
 | 04 — Classical ML | Isolation Forest, One-Class SVM, Local Outlier Factor, PCA reconstruction | planned |
 | 05 — Time series methods | Forecast residuals, Matrix Profile | planned |
 | 06 — Deep learning | Dense and LSTM autoencoders | planned |
@@ -73,8 +74,10 @@ metro-anomaly-benchmark/
 │   ├── data.py         # download, Parquet cache, gaps, frozen readings, runs, failure labels
 │   ├── features.py     # one-minute grid and backward-looking window features
 │   ├── evaluation.py   # time split, alarm events, event-based metrics, threshold calibration
+│   ├── baselines.py    # robust z-score, Hotelling T², EWMA, CUSUM, rolling-baseline z-score
 │   └── plotstyle.py    # shared figure style
 ├── notebooks/          # analysis, 01 → 07
+├── results/            # result tables per notebook (CSV)
 ├── tests/              # unit tests
 ├── docs/figures/
 └── .github/workflows/  # CI

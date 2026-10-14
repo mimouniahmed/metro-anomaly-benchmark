@@ -10,7 +10,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 
 **Question** : quelle méthode détecte les fuites le plus tôt, avec le moins de fausses alarmes, et la complexité supplémentaire en vaut-elle la peine ?
 
-> **État** : en cours. Analyse des données et protocole d'évaluation terminés (notebooks 01–02) ; méthodes de détection à venir.
+> **État** : en cours. Analyse des données, protocole d'évaluation et références statistiques terminés (notebooks 01–03) ; méthodes de machine learning à venir.
 
 ## Premiers résultats
 
@@ -23,6 +23,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 | **Alerte précoce** | Avant la panne 4, le compresseur était déjà surchargé depuis 14 heures : détecter avant le début déclaré paraît possible |
 | **Des fenêtres, pas des mesures** | Avec le protocole d'évaluation, le courant moteur brut détecte 0 panne sur 4 ; sa moyenne sur 2 h en détecte 4/4 avec 0,9 fausse alarme par semaine, dont la panne 4 avec 13,7 h d'avance |
 | **Dérive** | Un seuil de température d'huile calibré en hiver donne 1,4 fausse alarme par semaine en été, là où un seuil bien placé n'en donnerait aucune |
+| **Meilleures références statistiques** | z-score de la température d'huile par rapport aux 7 jours précédents : 4/4 pannes, 0,28 fausse alarme par semaine. CUSUM sur le courant moteur : 4/4, 0,64 par semaine, panne 4 signalée 12,9 h en avance. Les distances multivariées (max \|z\|, T² de Hotelling) échouent, noyées par une variable à queue lourde |
 
 ![Signature des pannes](docs/figures/01_failures.png)
 
@@ -32,7 +33,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 |---|---|---|
 | [01 — Données](notebooks/01_data_exploration.ipynb) | Capteurs, échantillonnage, trous, valeurs figées, cycle de fonctionnement, signature des pannes, complétude des étiquettes | ✅ |
 | [02 — Protocole d'évaluation](notebooks/02_evaluation_protocol.ipynb) | Grille à la minute, 18 variables sur fenêtres glissantes, découpage chronologique, évaluation par événement, calibration du seuil, niveau de chance | ✅ |
-| 03 — Références statistiques | Règle de charge continue, z-score, cartes de contrôle (EWMA, CUSUM) | prévu |
+| [03 — Références statistiques](notebooks/03_statistical_baselines.ipynb) | Règle d'expert, z-score robuste, T² de Hotelling, cartes EWMA et CUSUM, z-score à référence glissante | ✅ |
 | 04 — ML classique | Isolation Forest, One-Class SVM, Local Outlier Factor, reconstruction par ACP | prévu |
 | 05 — Méthodes temporelles | Résidus de prévision, Matrix Profile | prévu |
 | 06 — Deep learning | Autoencodeurs denses et LSTM | prévu |
@@ -75,8 +76,10 @@ metro-anomaly-benchmark/
 │   ├── data.py         # téléchargement, cache Parquet, trous, valeurs figées, séquences, étiquettes
 │   ├── features.py     # grille à la minute et variables sur fenêtres glissantes
 │   ├── evaluation.py   # découpage temporel, événements d'alarme, métriques, calibration du seuil
+│   ├── baselines.py    # z-score robuste, T² de Hotelling, EWMA, CUSUM, z-score à référence glissante
 │   └── plotstyle.py    # style commun des figures
 ├── notebooks/          # analyse, 01 → 07
+├── results/            # tableaux de résultats par notebook (CSV)
 ├── tests/              # tests unitaires
 ├── docs/figures/
 └── .github/workflows/  # intégration continue
