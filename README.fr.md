@@ -10,7 +10,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 
 **Question** : quelle méthode détecte les fuites le plus tôt, avec le moins de fausses alarmes, et la complexité supplémentaire en vaut-elle la peine ?
 
-> **État** : en cours. Analyse des données terminée (notebook 01) ; méthodes de détection et évaluation à venir.
+> **État** : en cours. Analyse des données et protocole d'évaluation terminés (notebooks 01–02) ; méthodes de détection à venir.
 
 ## Premiers résultats
 
@@ -21,6 +21,8 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 | **Qualité des données** | Une mesure toutes les ~10 s (et non 1 Hz comme documenté) ; 18 % de la période manquante ; 7 jours de valeurs de capteurs figées à exclure |
 | **Vérité terrain** | 8 épisodes de charge continue ≥ 1 h ne figurent **pas** dans les rapports de panne : les étiquettes sont incomplètes. L'évaluation se fait donc par événement, et les épisodes non déclarés sont présentés à part |
 | **Alerte précoce** | Avant la panne 4, le compresseur était déjà surchargé depuis 14 heures : détecter avant le début déclaré paraît possible |
+| **Des fenêtres, pas des mesures** | Avec le protocole d'évaluation, le courant moteur brut détecte 0 panne sur 4 ; sa moyenne sur 2 h en détecte 4/4 avec 0,9 fausse alarme par semaine, dont la panne 4 avec 13,7 h d'avance |
+| **Dérive** | Un seuil de température d'huile calibré en hiver donne 1,4 fausse alarme par semaine en été, là où un seuil bien placé n'en donnerait aucune |
 
 ![Signature des pannes](docs/figures/01_failures.png)
 
@@ -29,7 +31,7 @@ Comparaison de méthodes de détection d'anomalies sur des **données de capteur
 | Notebook | Contenu | État |
 |---|---|---|
 | [01 — Données](notebooks/01_data_exploration.ipynb) | Capteurs, échantillonnage, trous, valeurs figées, cycle de fonctionnement, signature des pannes, complétude des étiquettes | ✅ |
-| 02 — Protocole d'évaluation | Variables sur fenêtres, découpage temporel, métriques par événement (détection, avance, fausses alarmes par semaine) | prévu |
+| [02 — Protocole d'évaluation](notebooks/02_evaluation_protocol.ipynb) | Grille à la minute, 18 variables sur fenêtres glissantes, découpage chronologique, évaluation par événement, calibration du seuil, niveau de chance | ✅ |
 | 03 — Références statistiques | Règle de charge continue, z-score, cartes de contrôle (EWMA, CUSUM) | prévu |
 | 04 — ML classique | Isolation Forest, One-Class SVM, Local Outlier Factor, reconstruction par ACP | prévu |
 | 05 — Méthodes temporelles | Résidus de prévision, Matrix Profile | prévu |
@@ -71,6 +73,8 @@ Le jeu de données (218 Mo) est téléchargé automatiquement à la première ut
 metro-anomaly-benchmark/
 ├── src/metrobench/
 │   ├── data.py         # téléchargement, cache Parquet, trous, valeurs figées, séquences, étiquettes
+│   ├── features.py     # grille à la minute et variables sur fenêtres glissantes
+│   ├── evaluation.py   # découpage temporel, événements d'alarme, métriques, calibration du seuil
 │   └── plotstyle.py    # style commun des figures
 ├── notebooks/          # analyse, 01 → 07
 ├── tests/              # tests unitaires

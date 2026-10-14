@@ -1,6 +1,6 @@
 import pandas as pd
 
-from metrobench.data import FAILURES, failure_mask, find_gaps, find_runs, frozen_mask
+from metrobench.data import FAILURES, failure_mask, find_gaps, find_runs, frozen_mask, sustained_load_episodes
 
 
 def test_find_gaps_reports_only_long_interruptions():
@@ -45,3 +45,14 @@ def test_frozen_mask_flags_repeated_rows():
 def test_reported_failures_are_ordered_and_disjoint():
     assert (FAILURES["start"] < FAILURES["end"]).all()
     assert (FAILURES["start"].iloc[1:].to_numpy() > FAILURES["end"].iloc[:-1].to_numpy()).all()
+
+
+def test_sustained_load_episodes_flags_reported_failures():
+    index = pd.date_range("2020-01-01", periods=6 * 60 * 6, freq="10s")  # 6 hours
+    df = pd.DataFrame({"DV_eletric": 0}, index=index)
+    df.loc["2020-01-01 01:00":"2020-01-01 03:00", "DV_eletric"] = 1
+    failures = pd.DataFrame({"start": [pd.Timestamp("2020-01-01 02:00")], "end": [pd.Timestamp("2020-01-01 02:30")]})
+    episodes = sustained_load_episodes(df, min_duration="1h", failures=failures)
+    assert len(episodes) == 1
+    assert episodes.loc[0, "reported"]
+    assert episodes.loc[0, "start"] > pd.Timestamp("2020-01-01 01:20")  # needs 27+ loaded minutes out of 30

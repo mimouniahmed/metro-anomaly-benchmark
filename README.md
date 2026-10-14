@@ -10,7 +10,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 
 **Question**: which method detects the air leaks earliest, with the fewest false alarms, and is the added complexity worth it?
 
-> **Status**: in progress. Data analysis done (notebook 01); detection methods and evaluation are next.
+> **Status**: in progress. Data analysis and evaluation protocol done (notebooks 01–02); detection methods are next.
 
 ## Findings so far
 
@@ -21,6 +21,8 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | **Data quality** | Readings every ~10 s (not 1 Hz as documented); 18% of the period missing; 7 days of frozen sensor values that must be excluded |
 | **Ground truth** | 8 sustained-load episodes ≥ 1 h are **not** in the failure reports, so labels are incomplete. Evaluation is therefore event-based, with unreported episodes reported separately |
 | **Early warning** | Before failure 4 the compressor was already overloaded for 14 hours, so detection ahead of the reported start is plausible |
+| **Windows, not readings** | Under the evaluation protocol, the raw motor current detects 0/4 failures; its 2-hour mean detects 4/4 with 0.9 false alarms per week, failure 4 flagged 13.7 h early |
+| **Drift** | A winter-calibrated threshold on oil temperature gives 1.4 false alarms per week in summer, where a well-placed one would give none |
 
 ![Failure signature](docs/figures/01_failures.png)
 
@@ -29,7 +31,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | Notebook | Content | Status |
 |---|---|---|
 | [01 — Data](notebooks/01_data_exploration.ipynb) | Sensors, sampling, gaps, frozen readings, operating cycle, failure signature, label completeness | ✅ |
-| 02 — Evaluation protocol | Windowed features, train/test split in time, event-based metrics (detection, lead time, false alarms per week) | planned |
+| [02 — Evaluation protocol](notebooks/02_evaluation_protocol.ipynb) | One-minute grid, 18 window features, chronological split, event-based scoring, threshold calibration, chance level | ✅ |
 | 03 — Statistical baselines | Sustained-load rule, z-score, control charts (EWMA, CUSUM) | planned |
 | 04 — Classical ML | Isolation Forest, One-Class SVM, Local Outlier Factor, PCA reconstruction | planned |
 | 05 — Time series methods | Forecast residuals, Matrix Profile | planned |
@@ -69,6 +71,8 @@ The dataset (218 MB) is downloaded automatically on first use by `metrobench.dat
 metro-anomaly-benchmark/
 ├── src/metrobench/
 │   ├── data.py         # download, Parquet cache, gaps, frozen readings, runs, failure labels
+│   ├── features.py     # one-minute grid and backward-looking window features
+│   ├── evaluation.py   # time split, alarm events, event-based metrics, threshold calibration
 │   └── plotstyle.py    # shared figure style
 ├── notebooks/          # analysis, 01 → 07
 ├── tests/              # unit tests

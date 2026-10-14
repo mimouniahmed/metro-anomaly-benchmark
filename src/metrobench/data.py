@@ -109,6 +109,21 @@ def frozen_mask(df: pd.DataFrame, columns: list[str] = ANALOG) -> pd.Series:
     return df[columns].diff().abs().sum(axis=1, min_count=1).eq(0)
 
 
+def sustained_load_episodes(df: pd.DataFrame, min_duration: str = "1h", failures: pd.DataFrame = FAILURES) -> pd.DataFrame:
+    """Stretches where the compressor was loaded more than 90% of the previous 30 minutes.
+
+    This is the signature of the reported air leaks. The column ``reported`` tells
+    whether the episode overlaps a reported failure window.
+    """
+    loaded = df["DV_eletric"].rolling("30min").mean() > 0.9
+    episodes = find_runs(loaded, min_duration=min_duration)
+    episodes["reported"] = [
+        bool(((failures["start"] <= end) & (failures["end"] >= start)).any())
+        for start, end in episodes[["start", "end"]].itertuples(index=False)
+    ]
+    return episodes
+
+
 def failure_mask(index: pd.DatetimeIndex, failures: pd.DataFrame = FAILURES) -> pd.Series:
     """Boolean series, True for timestamps that fall inside a reported failure window."""
     mask = pd.Series(False, index=index)
