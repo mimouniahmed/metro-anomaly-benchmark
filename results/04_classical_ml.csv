@@ -1,0 +1,9 @@
+detector,input,detected,false_alarms_per_week,lead_h_4
+Isolation Forest,raw,3.0,0.6215444063058804,0.8333333333333334
+One-Class SVM,raw,2.0,1.5193307709699297,-2.45
+LOF,raw,4.0,0.5524839167163381,12.6
+PCA reconstruction,raw,3.0,1.3812097917908452,-0.5
+Isolation Forest,drift-adjusted,4.0,0.6215444063058804,-0.38333333333333336
+One-Class SVM,drift-adjusted,2.0,1.5193307709699297,-0.43333333333333335
+LOF,drift-adjusted,4.0,0.6906048958954226,12.8
+PCA reconstruction,drift-adjusted,3.0,0.7596653854849649,-1.9

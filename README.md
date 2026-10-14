@@ -10,7 +10,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 
 **Question**: which method detects the air leaks earliest, with the fewest false alarms, and is the added complexity worth it?
 
-> **Status**: in progress. Data analysis, evaluation protocol and statistical baselines done (notebooks 01–03); machine learning methods are next.
+> **Status**: in progress. Notebooks 01–04 done (data, protocol, statistical baselines, classical ML); time series methods and deep learning are next.
 
 ## Findings so far
 
@@ -24,6 +24,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | **Windows, not readings** | Under the evaluation protocol, the raw motor current detects 0/4 failures; its 2-hour mean detects 4/4 with 0.9 false alarms per week, failure 4 flagged 13.7 h early |
 | **Drift** | A winter-calibrated threshold on oil temperature gives 1.4 false alarms per week in summer, where a well-placed one would give none |
 | **Best statistical baselines** | Oil temperature z-score against a 7-day rolling reference: 4/4 failures, 0.28 false alarms per week. CUSUM on motor current: 4/4, 0.64 per week, failure 4 flagged 12.9 h early. Multivariate distances (max \|z\|, Hotelling T²) fail, swamped by one heavy-tailed feature |
+| **Classical ML** | LOF on the window features matches the best charts (4/4 on all seeds, 0.55 false alarms per week, 12.6 h early on failure 4) without beating them; One-Class SVM detects 2/4. Results vary up to threefold across random seeds, so every stochastic result is a median over five. PCA adds what scores lack: which signals explain each alarm |
 
 ![Failure signature](docs/figures/01_failures.png)
 
@@ -34,7 +35,7 @@ Comparison of anomaly detection methods on **real industrial sensor data**: 7 mo
 | [01 — Data](notebooks/01_data_exploration.ipynb) | Sensors, sampling, gaps, frozen readings, operating cycle, failure signature, label completeness | ✅ |
 | [02 — Evaluation protocol](notebooks/02_evaluation_protocol.ipynb) | One-minute grid, 18 window features, chronological split, event-based scoring, threshold calibration, chance level | ✅ |
 | [03 — Statistical baselines](notebooks/03_statistical_baselines.ipynb) | Expert rule, robust z-score, Hotelling T², EWMA and CUSUM charts, rolling-baseline z-score | ✅ |
-| 04 — Classical ML | Isolation Forest, One-Class SVM, Local Outlier Factor, PCA reconstruction | planned |
+| [04 — Classical ML](notebooks/04_classical_ml.ipynb) | Isolation Forest, One-Class SVM, Local Outlier Factor, PCA reconstruction; raw vs. drift-adjusted inputs; seed variability; alarm explanation | ✅ |
 | 05 — Time series methods | Forecast residuals, Matrix Profile | planned |
 | 06 — Deep learning | Dense and LSTM autoencoders | planned |
 | 07 — Results | Comparison table, cost of complexity, recommendation | planned |
@@ -75,6 +76,7 @@ metro-anomaly-benchmark/
 │   ├── features.py     # one-minute grid and backward-looking window features
 │   ├── evaluation.py   # time split, alarm events, event-based metrics, threshold calibration
 │   ├── baselines.py    # robust z-score, Hotelling T², EWMA, CUSUM, rolling-baseline z-score
+│   ├── ml.py           # Isolation Forest, One-Class SVM, LOF, PCA reconstruction, drift-adjusted inputs
 │   └── plotstyle.py    # shared figure style
 ├── notebooks/          # analysis, 01 → 07
 ├── results/            # result tables per notebook (CSV)
